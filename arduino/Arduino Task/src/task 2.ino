@@ -5,12 +5,17 @@ const int B = 4275000; // B value of the thermistor
 const int R0 = 100000; // R0 = 100k
 const int pinTempSensor = A0; // Grove - Temperature Sensor connect to A0
 
-float array_of_temps[180]; // Array length 180 because it reads temperature every second for 3 minutes (180 seconds)
+float array_of_temps[60]; // Array length 60 because it reads temperature every 3 seconds for 3 minutes (180 seconds)
 const int array_length = (sizeof(array_of_temps) / sizeof(array_of_temps[0]));
+
+float real[array_length];
+float imag[array_length];
+float frequency[array_length];
+float magnitude[array_length];
 
 int collect_temperature_data(float array_of_temps[], int index);
 int save_to_array(float temperature, float array_of_temps[], int index);
-int perform_dft(float array_of_temps[], int array_length);
+float* apply_dft(float array_of_temps[], int array_length);
 
 void setup()
 {
@@ -19,11 +24,11 @@ void setup()
 
 void loop()
 {
-  // Collect temperature data every second for 3 minutes (180 seconds)
+  // Collect temperature data every 3 seconds for 3 minutes (60 readings)
   for (int index = 0; index < array_length; index++)
   {
     collect_temperature_data(array_of_temps, index);
-    delay(1000);
+    delay(3000);
   }
 
   // Perform DFT on the collected temperature data
@@ -52,13 +57,10 @@ int save_to_array(float temperature, float array_of_temps[], int index)
     return 0;
 }
 
-int apply_dft(float array_of_temps[], int array_length)
+float* apply_dft(float array_of_temps[], int array_length)
 {
-  const float fs = 1.0; // sampling frequency in Hz
-  float real[array_length];
-  float imag[array_length];
-  float frequency[array_length];
-  float magnitude[array_length];
+  const float fs = 3.0; // sampling frequency in Hz is 3.0 because temperature is read every 3 seconds
+  
 
   for (int k = 0; k < array_length; k++) {
     real[k] = 0.0;
@@ -70,8 +72,8 @@ int apply_dft(float array_of_temps[], int array_length)
       imag[k] -= array_of_temps[n] * sin(angle);
     }
 
-    float magnitude[k] = sqrt(real[k] * real[k] + imag[k] * imag[k]);
-    float frequency[k] = (k * fs) / array_length;
+    magnitude[k] = sqrt(real[k] * real[k] + imag[k] * imag[k]);
+    frequency[k] = (k * fs) / array_length;
 
     Serial.print("DFT[");
     Serial.print(k);
