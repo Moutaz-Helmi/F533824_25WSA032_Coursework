@@ -16,7 +16,7 @@ float magnitude[array_length];
 int collect_temperature_data(float array_of_temps[], int index);
 int save_to_array(float temperature, float array_of_temps[], int index);
 float* apply_dft(float array_of_temps[], int array_length);
-
+void send_data_to_pc(float array_of_temps[], float frequency[], float magnitude[], int array_length);
 void setup()
 {
     Serial.begin(9600);
@@ -33,6 +33,9 @@ void loop()
 
   // Perform DFT on the collected temperature data
   apply_dft(array_of_temps, array_length);
+
+  send_data_to_pc(array_of_temps, frequency, magnitude, array_length);
+
 }
 
 int collect_temperature_data(float array_of_temps[], int index)
@@ -59,7 +62,7 @@ int save_to_array(float temperature, float array_of_temps[], int index)
 
 float* apply_dft(float array_of_temps[], int array_length)
 {
-  const float fs = 3.0; // sampling frequency in Hz is 3.0 because temperature is read every 3 seconds
+  const float fs = 1.0 / 3.0; // sampling frequency in Hz is 1 / 3 because temperature is read once every 3 seconds
   
 
   for (int k = 0; k < array_length; k++) {
@@ -75,15 +78,36 @@ float* apply_dft(float array_of_temps[], int array_length)
     magnitude[k] = sqrt(real[k] * real[k] + imag[k] * imag[k]);
     frequency[k] = (k * fs) / array_length;
 
-    Serial.print("DFT[");
-    Serial.print(k);
-    Serial.print("] f=");
-    Serial.print(frequency[k], 4);
-    Serial.print(" Hz magnitude=");
-    Serial.println(magnitude[k], 4);
+    // Commented out, used for debugging
+    //Serial.print("DFT[");
+    //Serial.print(k);
+    //Serial.print("] f=");
+    //Serial.print(frequency[k], 4);
+    //Serial.print(" Hz magnitude=");
+    //Serial.println(magnitude[k], 4);
   }
 
   return frequency;
 }
 
+void send_data_to_pc(float array_of_temps[], float frequency[], float magnitude[], int array_length)
+{
+  Serial.println("Time,Temperature,Frequency,Magnitude");
+
+  for (int i = 0; i < array_length; i++)
+  {
+    float time = i * 3.0;
+
+    Serial.print(time, 2);
+    Serial.print(",");
+
+    Serial.print(array_of_temps[i], 2);
+    Serial.print(",");
+
+    Serial.print(frequency[i], 4);
+    Serial.print(",");
+
+    Serial.println(magnitude[i], 4);
+  }
+}
 
