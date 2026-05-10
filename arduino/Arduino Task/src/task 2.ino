@@ -17,6 +17,8 @@ int collect_temperature_data(float array_of_temps[], int index);
 int save_to_array(float temperature, float array_of_temps[], int index);
 float* apply_dft(float array_of_temps[], int array_length);
 void send_data_to_pc(float array_of_temps[], float frequency[], float magnitude[], int array_length);
+int decide_power_mode(float frequency[], int array_length);
+
 void setup()
 {
     Serial.begin(9600);
@@ -36,6 +38,16 @@ void loop()
 
   send_data_to_pc(array_of_temps, frequency, magnitude, array_length);
 
+  int mode = decide_power_mode(frequency, array_length);
+  if (mode == 1) {
+      Serial.println("ACTIVE MODE");
+  }
+  else if (mode == 2) {
+      Serial.println("IDLE MODE");
+  }
+  else {
+      Serial.println("POWER DOWN MODE");
+  }
 }
 
 int collect_temperature_data(float array_of_temps[], int index)
@@ -109,5 +121,36 @@ void send_data_to_pc(float array_of_temps[], float frequency[], float magnitude[
 
     Serial.println(magnitude[i], 4);
   }
+}
+
+int decide_power_mode(float frequency[], int array_length)
+{
+    float sum = 0.0;
+    float average_frequency;
+
+    // Calculate average frequency
+    for (int i = 0; i < array_length; i++)
+    {
+      sum += frequency[i];
+    }
+
+    average_frequency = sum / array_length;
+    Serial.print("Average Frequency: ");
+    Serial.print(average_frequency, 4);
+    Serial.println(" Hz");
+
+    // Decide mode
+    if (average_frequency > 0.5)
+    {
+      return 1; // ACTIVE mode
+    }
+    else if (average_frequency > 0.1)
+    {
+      return 2; // IDLE mode
+    }
+    else
+    {
+      return 3; // SLEEP mode
+    }
 }
 
