@@ -4,7 +4,7 @@ const int B = 4275000; // B value of the thermistor
 const int R0 = 100000; // R0 = 100k
 const int pinTempSensor = A0; // Grove - Temperature Sensor connect to A0
 
-float array_of_temps[60]; // Array length 60 because it reads temperature every 3 seconds for 3 minutes (180 seconds)
+float array_of_temps[60]; // Array length 60
 const int array_length = (sizeof(array_of_temps) / sizeof(array_of_temps[0]));
 
 float real[array_length];
@@ -13,17 +13,18 @@ float frequency[array_length];
 float magnitude[array_length];
 
 float variation_history[10];
+
 int stable_cycles = 0;
 
 float sampling_frequency = 1.0; // Initial sampling frequency
 unsigned long sampling_interval = 1000; // Initial sampling interval
 
-
 int collect_temperature_data(float array_of_temps[], int index);
 int save_to_array(float temperature, float array_of_temps[], int index);
 float* apply_dft(float array_of_temps[], int array_length);
 void send_data_to_pc(float array_of_temps[], float frequency[], float magnitude[], int array_length);
-int decide_power_mode(float frequency[], int array_length);
+int decide_power_mode(float array_of_temps[], float frequency[], float magnitude[], int array_length);
+
 float calculate_variation(float array_of_temps[], int array_length);
 float calculate_moving_average(float variation);
 float find_dominant_frequency(float frequency[], float magnitude[], int array_length);
@@ -31,26 +32,27 @@ void update_sampling_rate(int mode, float dominant_frequency);
 
 void setup()
 {
-    Serial.begin(9600);
+  Serial.begin(9600);
 }
 
 void loop()
 {
-  // Collect temperature data, intervals decided with update_sampling_rate() function returning sampling_interval
+  // Collect temperature data
   for (int index = 0; index < array_length; index++)
   {
     collect_temperature_data(array_of_temps, index);
+
     delay(sampling_interval);
   }
 
-  // Perform DFT on the collected temperature data
+  // Perform DFT
   apply_dft(array_of_temps, array_length);
 
   // Send data to PC
   send_data_to_pc(array_of_temps, frequency, magnitude, array_length);
 
-  // Decide power mode based on the analysis of the temperature data
-  int mode = decide_power_mode(frequency, array_length);
+  // Decide mode
+  int mode = decide_power_mode(array_of_temps, frequency, magnitude, array_length);
 
   if (mode == 1) {
     Serial.println("ACTIVE MODE");
@@ -61,19 +63,21 @@ void loop()
   else {
     Serial.println("POWER DOWN MODE");
   }
+
+  Serial.println();
 }
 
 int collect_temperature_data(float array_of_temps[], int index)
 {
     int a = analogRead(pinTempSensor);
-    float R = 1023.0/a-1.0;
-    R = R0*R;
-    float temperature = 1.0/(log(R/R0)/B+1/298.15)-273.15; // convert to temperature via datasheet
-    
+    float R = 1023.0 / a - 1.0;
+    R = R0 * R;
+    float temperature = 1.0 / (log(R / R0) / B + 1 / 298.15) - 273.15;
+
     Serial.print(index);
     Serial.print(". temperature = ");
     Serial.println(temperature);
-    
+
     save_to_array(temperature, array_of_temps, index);
 
     return 0;
@@ -81,34 +85,27 @@ int collect_temperature_data(float array_of_temps[], int index)
 
 int save_to_array(float temperature, float array_of_temps[], int index)
 {
-    array_of_temps[index] = temperature;
-    return 0;
+  array_of_temps[index] = temperature;
+  return 0;
 }
 
 float* apply_dft(float array_of_temps[], int array_length)
 {
-  const float fs = 1.0 / 3.0; // sampling frequency in Hz is 1 / 3 because temperature is read once every 3 seconds
-  
+  const float fs = sampling_frequency;
+
   for (int k = 0; k < array_length; k++) {
     real[k] = 0.0;
     imag[k] = 0.0;
 
     for (int n = 0; n < array_length; n++) {
       float angle = 2.0 * PI * k * n / array_length;
+
       real[k] += array_of_temps[n] * cos(angle);
       imag[k] -= array_of_temps[n] * sin(angle);
     }
 
     magnitude[k] = sqrt(real[k] * real[k] + imag[k] * imag[k]);
     frequency[k] = (k * fs) / array_length;
-
-    // Commented out, used for debugging
-    //Serial.print("DFT[");
-    //Serial.print(k);
-    //Serial.print("] f=");
-    //Serial.print(frequency[k], 4);
-    //Serial.print(" Hz magnitude=");
-    //Serial.println(magnitude[k], 4);
   }
 
   return frequency;
@@ -118,19 +115,15 @@ void send_data_to_pc(float array_of_temps[], float frequency[], float magnitude[
 {
   Serial.println("Time,Temperature,Frequency,Magnitude");
 
-  for (int i = 0; i < array_length; i++)
-  {
+  for (int i = 0; i < array_length; i++) {
     float time = i * (sampling_interval / 1000.0);
 
     Serial.print(time, 2);
     Serial.print(",");
-
     Serial.print(array_of_temps[i], 2);
     Serial.print(",");
-
     Serial.print(frequency[i], 4);
     Serial.print(",");
-
     Serial.println(magnitude[i], 4);
   }
 }
@@ -222,7 +215,7 @@ void update_sampling_rate(int mode, float dominant_frequency)
   Serial.println(" ms");
 }
 
-int decide_power_mode(float frequency[], int array_length)
+int decide_power_mode(float array_of_temps[], float frequency[], float magnitude[], int array_length)
 {
   float variation = calculate_variation(array_of_temps, array_length);
   float moving_average = calculate_moving_average(variation);
@@ -236,29 +229,31 @@ int decide_power_mode(float frequency[], int array_length)
   Serial.print(dominant_frequency, 4);
   Serial.println(" Hz");
 
-  // Decide mode
-  if (moving_average > 0.5)
-  {
-    mode = 1; // ACTIVE mode
+  int mode;
+
+  // ACTIVE MODE
+  if (moving_average > 0.5){
+    mode = 1;
     stable_cycles = 0;
   }
-  else if (moving_average > 0.1)
-  {
-    mode = 2; // IDLE mode
+  // IDLE MODE
+  else if (moving_average > 0.1){
+    mode = 2;
     stable_cycles = 0;
   }
-  else
-  {
+  // POWER DOWN LOGIC
+  else {
     stable_cycles++;
 
     if (stable_cycles >= 5){
-      mode = 3; // SLEEP mode
+      mode = 3;
     }
     else {
-      mode = 2; // IDLE mode
-    } 
+      mode = 2;
+    }
   }
+
   update_sampling_rate(mode, dominant_frequency);
+
   return mode;
 }
-
