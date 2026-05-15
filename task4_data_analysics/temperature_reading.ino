@@ -7,7 +7,7 @@ const int pinTempSensor = A0;
 const unsigned long sampling_interval = 1000; // 1 reading every 1 second
 
 const int recording_time_seconds = 180; // 3 minutes total
-const int total_samples = recording_time_seconds / (sampling_interval / 1000);
+const int total_samples = recording_time_seconds / (sampling_interval / 1000.0);
 
 float collect_temperature_data();
 void send_data_to_pc(float time, float temperature);
@@ -30,8 +30,7 @@ void loop()
         delay(sampling_interval);
     }
 
-    // Stop repeating
-    while (1);
+    exit(0); // Stop the program after collecting data cycle
 }
 
 float collect_temperature_data()
