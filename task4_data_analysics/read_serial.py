@@ -3,7 +3,7 @@ import time
 
 SERIAL_PORT = "COM7"
 BAUD_RATE = 9600
-FILE = "temperatures.csv"
+FILE = "task4_data_analysics\\temperatures.csv"
 
 ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=3)
 time.sleep(2)  # Wait for the serial connection to initialize
