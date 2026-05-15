@@ -11,6 +11,12 @@ time.sleep(2)  # Wait for the serial connection to initialize
 
 file = open(FILE, "w")
 s = ""
+while (s != "START"): # Check if the first line is "START", if not continue running, if yes writting to file will start
+    line = ser.readline()
+    if not line:
+        continue
+    s = line.decode(errors="ignore").rstrip('\r\n')
+    print(s)
 while (s != "END"): # Check if the last line is "END", if not continue running, if yes writting to file will stop
     line = ser.readline()
     if not line:
@@ -18,10 +24,10 @@ while (s != "END"): # Check if the last line is "END", if not continue running, 
     s = line.decode(errors="ignore").rstrip('\r\n')
     print(s)
 
-    if file and s != "END": # If the file is open and the line is not "END", write the line to the file
-        file.write(s + "\n")
-        file.flush()
+    if (len(s.split(",")) == 4): # Check if line has 4th indexes, if yes then write line to file, if not then ignore the line
+        if file and s != "END": # If the file is open and the line is not "END", write the line to the file
+            file.write(s + "\n")
+            file.flush()
 
 file.close()
 ser.close()
-
