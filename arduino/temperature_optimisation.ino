@@ -18,9 +18,7 @@ int stable_cycles = 0;
 float sampling_frequency = 1.0; // Initial sampling frequency
 unsigned long sampling_interval = 1000; // Initial sampling interval
 
-
 int collect_temperature_data(float array_of_temps[], int index);
-int save_to_array(float temperature, float array_of_temps[], int index);
 float* apply_dft(float array_of_temps[], int array_length);
 void send_data_to_pc(float array_of_temps[], float frequency[], float magnitude[], int array_length);
 int decide_power_mode(float frequency[], int array_length);
@@ -31,7 +29,7 @@ void update_sampling_rate(int mode, float dominant_frequency);
 
 void setup()
 {
-    Serial.begin(9600);
+  Serial.begin(9600);
 }
 
 void loop()
@@ -68,20 +66,15 @@ int collect_temperature_data(float array_of_temps[], int index)
     int a = analogRead(pinTempSensor);
     float R = 1023.0/a-1.0;
     R = R0*R;
+    float time = index * (sampling_interval / 1000.0); // convert to seconds
     float temperature = 1.0/(log(R/R0)/B+1/298.15)-273.15; // convert to temperature via datasheet
-    
-    Serial.print(index);
-    Serial.print(". temperature = ");
-    Serial.println(temperature);
-    
-    save_to_array(temperature, array_of_temps, index);
-
-    return 0;
-}
-
-int save_to_array(float temperature, float array_of_temps[], int index)
-{
     array_of_temps[index] = temperature;
+    
+    Serial.print(time, 2);
+    Serial.print(",");
+    Serial.print(temperature, 2);
+    Serial.println(",");
+
     return 0;
 }
 
@@ -227,6 +220,7 @@ int decide_power_mode(float frequency[], int array_length)
   float variation = calculate_variation(array_of_temps, array_length);
   float moving_average = calculate_moving_average(variation);
   float dominant_frequency = find_dominant_frequency(frequency, magnitude, array_length);
+  int mode;
 
   Serial.print("Temperature Variation: ");
   Serial.println(variation, 4);
