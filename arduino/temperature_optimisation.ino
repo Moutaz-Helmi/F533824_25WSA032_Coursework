@@ -70,12 +70,6 @@ int collect_temperature_data(float array_of_temps[], int index)
     float time = index * (sampling_interval / 1000.0); // convert to seconds
     float temperature = 1.0/(log(R/R0)/B+1/298.15)-273.15; // convert to temperature via datasheet
     array_of_temps[index] = temperature;
-    
-    Serial.print(time, 2);
-    Serial.print(",");
-    Serial.print(temperature, 2);
-    Serial.println(",");
-
     return 0;
 }
 
