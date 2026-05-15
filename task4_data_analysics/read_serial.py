@@ -3,10 +3,11 @@ import time
 
 SERIAL_PORT = "COM7"
 BAUD_RATE = 9600
-FILE = "temperatures.txt"
+FILE = "temperatures.csv"
 
 ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
 time.sleep(2)  # Wait for the serial connection to initialize
+
 
 file = open(FILE, "w")
 line = ""
