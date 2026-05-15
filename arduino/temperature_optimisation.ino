@@ -4,7 +4,7 @@ const int B = 4275000; // B value of the thermistor
 const int R0 = 100000; // R0 = 100k
 const int pinTempSensor = A0; // Grove - Temperature Sensor connect to A0
 
-float array_of_temps[60]; // Array length 60 because it reads temperature every 3 seconds for 3 minutes (180 seconds)
+float array_of_temps[180]; // Array length 180 because it reads temperature every 3 seconds for 3 minutes (180 seconds)
 const int array_length = (sizeof(array_of_temps) / sizeof(array_of_temps[0]));
 
 float real[array_length];
@@ -16,7 +16,7 @@ float variation_history[10];
 int stable_cycles = 0;
 
 float sampling_frequency = 1.0; // Initial sampling frequency
-unsigned long sampling_interval = 1000; // Initial sampling interval
+unsigned long sampling_interval = 3000; // Initial sampling interval
 
 int collect_temperature_data(float array_of_temps[], int index);
 float* apply_dft(float array_of_temps[], int array_length);
@@ -40,6 +40,7 @@ void loop()
     collect_temperature_data(array_of_temps, index);
     delay(sampling_interval);
   }
+  Serial.println("END");
 
   // Perform DFT on the collected temperature data
   apply_dft(array_of_temps, array_length);
