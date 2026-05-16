@@ -38,6 +38,19 @@ def moving_average(data, window_size):
 
     return smoothed
 
+def calculate_change_rate(time, temperature):
+    change_rate = [0]
+
+    for i in range(1, len(temperature)):
+
+        temp_change = temperature[i] - temperature[i - 1]
+        time_change = time[i] - time[i - 1]
+        rate = temp_change / time_change
+
+        change_rate.append(rate)
+
+    return change_rate
+
 def plot_graphs(time, temperature, frequency, magnitude):
     plt.figure(figsize=(15, 15))
 
@@ -49,9 +62,15 @@ def plot_graphs(time, temperature, frequency, magnitude):
 
     # Draw plot 3
     plot_3(time, temperature)
+
+    # Draw plot 4
+    plot_4(temperature)
+
+    # Draw plot 5
+    plot_5(time, temperature)
     
     plt.tight_layout()
-    plt.subplots_adjust(hspace=0.5, wspace=0.3, top=0.95, right= 0.97) # Adjust spacing between subplots
+    plt.subplots_adjust(hspace=0.5, wspace=0.3, top=0.95, right= 0.97, bottom=0.08) # Adjust spacing between subplots
     plt.show()
 
 def plot_1(time, temperature):
@@ -88,6 +107,28 @@ def plot_3(time, temperature):
     plt.xlabel("Time (s)")
     plt.ylabel("Temperature (°C)")
     plt.legend()
+    plt.grid(True)
+
+def plot_4(temperature):
+    plt.subplot(3, 2, 4)
+
+    plt.hist(temperature, bins=10)
+
+    plt.title("Histogram of Temperature Readings (Plot 4)")
+    plt.xlabel("Temperature (°C)")
+    plt.ylabel("Frequency")
+    plt.grid(True)
+
+def plot_5(time, temperature):
+    # Calculate temperature change rate
+    change_rate = calculate_change_rate(time, temperature)
+    plt.subplot(3, 2, 5)
+
+    plt.plot(time, change_rate)
+
+    plt.title("Temperature Change Rate vs Time (Plot 5)")
+    plt.xlabel("Time (s)")
+    plt.ylabel("Temperature Change Rate (°C/s)")
     plt.grid(True)
 
 # Read data from the file
