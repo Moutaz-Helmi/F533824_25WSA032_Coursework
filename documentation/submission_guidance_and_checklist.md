@@ -110,15 +110,15 @@ Push your final commit to GitHub first, then:
 
 ## Submission readiness checks
 
-- [ ] Folder named correctly: `B123456_25WSA032_Coursework`
-- [ ] Final commit made with a clear message
-- [ ] `arduino/temperature_optimisation.ino` committed
-- [ ] `robots/robot_optimisation.py` committed
-- [ ] Task 4 data, script, figures, and discussion all committed
-- [ ] `README.md` contains meaningful content
-- [ ] If using tags — a `submission` tag (or similar) is added
-- [ ] You are zipping the `.git` folder — not the whole project folder, not just source files
-- [ ] ZIP named `B123456_25WSA032_Coursework.zip`
+- [✔️] Folder named correctly: `B123456_25WSA032_Coursework`
+- [✔️] Final commit made with a clear message
+- [✔️] `arduino/temperature_optimisation.ino` committed
+- [✔️] `robots/robot_optimisation.py` committed
+- [✔️] Task 4 data, script, figures, and discussion all committed
+- [✔️] `README.md` contains meaningful content
+- [✔️] If using tags — a `submission` tag (or similar) is added
+- [✔️] You are zipping the `.git` folder — not the whole project folder, not just source files
+- [✔️] ZIP named `B123456_25WSA032_Coursework.zip`
 
 ---
 
